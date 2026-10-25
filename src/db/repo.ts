@@ -1,6 +1,6 @@
 import { makeCatalog } from '../domain/cost'
 import { recordChangedMenus, recordMenuCost, today, withPriceHistory } from '../domain/history'
-import { DEFAULT_SETTINGS, type Ingredient, type Menu, type Prep, type Ref, type Settings } from '../domain/types'
+import { DEFAULT_SETTINGS, type Ingredient, type Menu, type PhotoOwner, type Prep, type Ref, type Settings } from '../domain/types'
 import { db } from './db'
 
 /** 削除しようとしたものが、まだどこかで使われている */
@@ -12,7 +12,7 @@ export class InUseError extends Error {
   }
 }
 
-const tables = () => [db.ingredients, db.preps, db.menus]
+const tables = () => [db.ingredients, db.preps, db.menus, db.photos]
 
 /** 原価が変わったメニューの履歴を記録し、記録した品数を返す。トランザクション内で呼ぶ */
 async function recalcMenus(date: string): Promise<number> {
@@ -64,10 +64,19 @@ export function deletePrep(id: string): Promise<void> {
     const users = await usersOf(`p:${id}`)
     if (users.length) throw new InUseError(users)
     await db.preps.delete(id)
+    await db.photos.delete(`prep:${id}`)
   })
 }
 
-export const deleteMenu = (id: string): Promise<void> => db.menus.delete(id)
+export function deleteMenu(id: string): Promise<void> {
+  return db.transaction('rw', db.menus, db.photos, async () => {
+    await db.menus.delete(id)
+    await db.photos.delete(`menu:${id}`)
+  })
+}
+
+export const savePhoto = (id: PhotoOwner, dataUrl: string): Promise<unknown> => db.photos.put({ id, dataUrl })
+export const deletePhoto = (id: PhotoOwner): Promise<void> => db.photos.delete(id)
 
 export async function loadSettings(): Promise<Settings> {
   const row = await db.kv.get('settings')

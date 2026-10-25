@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Ingredient, Menu, Prep, Settings } from '../domain/types'
+import type { Ingredient, Menu, Photo, Prep, Settings } from '../domain/types'
 
 interface SettingsRow {
   key: 'settings'
@@ -11,6 +11,8 @@ export class GenkaDB extends Dexie {
   preps!: EntityTable<Prep, 'id'>
   menus!: EntityTable<Menu, 'id'>
   kv!: EntityTable<SettingsRow, 'key'>
+  /** 写真はメニューや仕込み品とは別に置く（一覧を読むたびに写真まで読まないため） */
+  photos!: EntityTable<Photo, 'id'>
 
   constructor(name = 'genka-chou') {
     super(name)
@@ -25,6 +27,8 @@ export class GenkaDB extends Dexie {
       await tx.table('preps').toCollection().modify((p) => { p.steps ??= [] })
       await tx.table('menus').toCollection().modify((m) => { m.steps ??= [] })
     })
+    // 版3：写真のテーブルを追加
+    this.version(3).stores({ photos: 'id' })
   }
 }
 

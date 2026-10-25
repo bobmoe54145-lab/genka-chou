@@ -138,6 +138,21 @@ p.empty { display: block }
 .add-row { width: 100%; border: 0; background: none; color: var(--ai); font-weight: 500; padding: 12px 14px; text-align: left }
 .confirm-msg { margin: 0; font-size: 14px }
 
+/* 写真（材料の上。高さをそろえ、はみ出す上下は見せない） */
+.photo-add { display: block; text-align: center; border: 1px dashed var(--line); background: var(--surface); border-radius: 12px; padding: 14px; color: var(--ai); font-weight: 500; cursor: pointer }
+.photo-add.busy { color: var(--muted); cursor: default }
+.photo-block { display: flex; flex-direction: column; gap: 4px }
+.photo { display: block; width: 100%; height: 220px; padding: 0; border: 0; border-radius: 12px; overflow: hidden; background: var(--line); cursor: zoom-in }
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover }
+.photo-tools { display: flex; justify-content: flex-end; gap: 4px }
+.photo-tools .photo-change, .photo-tools button { border: 0; background: none; color: var(--ai); font-size: 13px; padding: 4px 10px; border-radius: 6px; cursor: pointer }
+.photo-tools .del { color: var(--muted) }
+.photo-tools .del.armed { background: var(--bad-soft); color: var(--bad); font-weight: 700 }
+.viewer { position: fixed; inset: 0; z-index: 30; background: rgba(8, 12, 16, .94); display: flex; align-items: center; justify-content: center;
+  padding: calc(56px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px)) }
+.viewer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px }
+.viewer-close { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; border: 0; background: rgba(255, 255, 255, .18); color: #FFFFFF; border-radius: 999px; padding: 6px 16px; font-weight: 700 }
+
 /* 作り方 */
 .steps li:not(:last-child) { display: flex; gap: 10px; padding: 10px 12px 8px 12px }
 .step-no { flex: none; width: 24px; height: 24px; margin-top: 7px; border-radius: 50%; background: var(--ai-soft); color: var(--ai); font-size: 13px; font-weight: 500; display: grid; place-items: center }

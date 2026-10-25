@@ -60,6 +60,15 @@ export interface Menu {
   history: CostPoint[]
 }
 
+/** 写真の持ち主。メニューか仕込み品 */
+export type PhotoOwner = `menu:${string}` | `prep:${string}`
+
+/** 1品につき1枚の写真。縮めたJPEGを data URL の文字で持つ */
+export interface Photo {
+  id: PhotoOwner
+  dataUrl: string
+}
+
 export interface Settings {
   targetRate: number
   /** 最後にバックアップを書き出した日時（ISO文字列） */

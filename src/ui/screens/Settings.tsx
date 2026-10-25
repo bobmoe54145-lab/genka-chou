@@ -1,35 +1,73 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { backupFileName, backupOverdue, buildBackup, parseBackup, restoreBackup } from '../../db/backup'
+import { db } from '../../db/db'
 import { saveSettings } from '../../db/repo'
 import { NumInput } from '../components'
 import { useData } from '../data'
 import { useNav } from '../nav'
 
-/** 全データをファイルに書き出す。iPhoneでは共有シートから「ファイルに保存」を選べる */
-export function useExportBackup() {
+/**
+ * 全データをファイルに書き出すボタン。iPhoneでは共有シートから「ファイルに保存」を選べる。
+ * 写真を読むのに時間がかかり、共有シートが開けなかったときは「もう一度押して保存」にする
+ * （共有シートは、押してからすぐでないと開けないため）。
+ */
+export function ExportButton({ className, label }: { className: string; label: string }) {
   const { settings, ings, preps, menus } = useData()
   const nav = useNav()
-  return async () => {
-    // 共有シートはタップ直後でないと開けないので、DBを読み直さず画面のデータから作る
-    const file = buildBackup({ settings, ingredients: ings, preps, menus })
-    const blob = new File([JSON.stringify(file)], backupFileName(), { type: 'application/json' })
-    try {
-      if (navigator.canShare?.({ files: [blob] })) {
-        await navigator.share({ files: [blob], title: '原価計算帳のバックアップ' })
-      } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = blob.name
-        a.click()
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
-      }
-      await saveSettings({ lastBackupAt: file.exportedAt })
-      nav.toast('バックアップを書き出しました')
-    } catch (e) {
-      if ((e as Error).name !== 'AbortError') nav.toast('書き出せませんでした。もう一度試してください')
+  const [busy, setBusy] = useState(false)
+  const [ready, setReady] = useState<{ file: File; exportedAt: string } | null>(null)
+
+  const deliver = async (file: File, exportedAt: string) => {
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: '原価計算帳のバックアップ' })
+    } else {
+      const url = URL.createObjectURL(file)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = file.name
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    }
+    setReady(null)
+    await saveSettings({ lastBackupAt: exportedAt })
+    nav.toast('バックアップを書き出しました')
+  }
+  const failed = (e: unknown, made: { file: File; exportedAt: string }) => {
+    const name = (e as Error).name
+    if (name === 'AbortError') return
+    if (name === 'NotAllowedError') {
+      setReady(made)
+      nav.toast('準備ができました。もう一度押して保存してください')
+    } else {
+      nav.toast('書き出せませんでした。もう一度試してください')
     }
   }
+
+  const onClick = async () => {
+    if (ready) {
+      try { await deliver(ready.file, ready.exportedAt) } catch (e) { failed(e, ready) }
+      return
+    }
+    setBusy(true)
+    let made: { file: File; exportedAt: string }
+    try {
+      const photos = await db.photos.toArray()
+      const backup = buildBackup({ settings, ingredients: ings, preps, menus, photos })
+      made = { file: new File([JSON.stringify(backup)], backupFileName(), { type: 'application/json' }), exportedAt: backup.exportedAt }
+    } catch {
+      nav.toast('書き出せませんでした。もう一度試してください')
+      return
+    } finally {
+      setBusy(false)
+    }
+    try { await deliver(made.file, made.exportedAt) } catch (e) { failed(e, made) }
+  }
+
+  return (
+    <button type="button" className={className} disabled={busy} onClick={onClick}>
+      {busy ? '準備しています…' : ready ? '押して保存する' : label}
+    </button>
+  )
 }
 
 const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
@@ -46,7 +84,6 @@ function writeFlag(key: string) {
 /** メニュー一覧の上に出す案内（ホーム画面への追加、バックアップの催促） */
 export function Banners() {
   const { settings, ings, menus } = useData()
-  const exportBackup = useExportBackup()
   const [hideInstall, setHideInstall] = useState(() => readFlag('hide-install'))
   const showInstall = !hideInstall && isIOS() && !isStandalone()
   const overdue = backupOverdue(settings.lastBackupAt, ings.length + menus.length > 0)
@@ -62,7 +99,7 @@ export function Banners() {
       {overdue && (
         <div className="banner warn">
           <p><b>バックアップしてください</b>{settings.lastBackupAt ? '最後の書き出しから30日以上たっています。' : 'まだ一度もバックアップしていません。'}機種変更や故障に備えて、ファイルに書き出しておきましょう。</p>
-          <button className="icon-btn solid" onClick={exportBackup}>書き出す</button>
+          <ExportButton className="icon-btn solid" label="書き出す" />
         </div>
       )}
     </>
@@ -72,7 +109,6 @@ export function Banners() {
 export function SettingsScreen() {
   const { settings, ings, preps, menus } = useData()
   const nav = useNav()
-  const exportBackup = useExportBackup()
   const fileRef = useRef<HTMLInputElement>(null)
   const t = settings.targetRate
 
@@ -119,8 +155,8 @@ export function SettingsScreen() {
       <section className="sec">
         <h2>バックアップ</h2>
         <div className="card">
-          <p className="muted">データはこのiPhoneの中だけに保存されます。機種変更や故障に備えて、定期的にファイルへ書き出してください。共有メニューの「"ファイル"に保存」からiCloud Driveに保存できます。</p>
-          <button className="btn ghost" onClick={exportBackup}>ファイルに書き出す</button>
+          <p className="muted">データはこのiPhoneの中だけに保存されます。機種変更や故障に備えて、定期的にファイルへ書き出してください。共有メニューの「"ファイル"に保存」からiCloud Driveに保存できます。写真も一緒に保存されます。</p>
+          <ExportButton className="btn ghost" label="ファイルに書き出す" />
           <button className="btn ghost" onClick={() => fileRef.current?.click()}>ファイルから読み込む</button>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={onFile} />
           <small className="muted">最終書き出し：{settings.lastBackupAt ? new Date(settings.lastBackupAt).toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' }) : 'まだありません'}</small>

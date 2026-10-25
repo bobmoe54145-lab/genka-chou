@@ -7,6 +7,7 @@ import { useData } from '../data'
 import { yen } from '../format'
 import { useNav } from '../nav'
 import { ItemRows } from './ItemRows'
+import { PhotoBlock } from './PhotoBlock'
 import { StepsEditor } from './Steps'
 import { Banners } from './Settings'
 
@@ -125,6 +126,7 @@ export function MenuDetail({ id }: { id: string }) {
           </label>
         </div>
       </section>
+      <PhotoBlock owner={`menu:${m.id}`} name={m.name} />
       <section className="sec">
         <h2>材料<small>{m.servings > 1 ? `${m.servings}人前の分量 → 1皿に換算` : '1皿分の分量'}</small></h2>
         <ItemRows items={m.items} holder={{ kind: 'menu', id: m.id }} />

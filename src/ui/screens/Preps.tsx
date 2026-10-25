@@ -7,6 +7,7 @@ import { useData } from '../data'
 import { qtyFmt, unitYen, yen } from '../format'
 import { useNav } from '../nav'
 import { ItemRows } from './ItemRows'
+import { PhotoBlock } from './PhotoBlock'
 import { StepsEditor } from './Steps'
 
 export function PrepList() {
@@ -87,6 +88,7 @@ export function PrepDetail({ id }: { id: string }) {
           <small>材料合計 {yen(total)}円 ÷ {qtyFmt(p.yieldAmount)}{p.yieldUnit}</small>
         </div>
       </section>
+      <PhotoBlock owner={`prep:${p.id}`} name={p.name} />
       <section className="sec">
         <h2>材料<small>行をタップして分量を変更</small></h2>
         <ItemRows items={p.items} holder={{ kind: 'prep', id: p.id }} />
