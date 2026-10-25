@@ -20,16 +20,16 @@ const ings = [
   ing('egg', 280, 10, '個'),
 ]
 const tare: Prep = {
-  id: 'tare', name: '生姜焼きのタレ', yieldAmount: 450, yieldUnit: 'ml',
+  id: 'tare', name: '生姜焼きのタレ', yieldAmount: 450, yieldUnit: 'ml', steps: [],
   items: [{ ref: 'i:shoyu', qty: 200 }, { ref: 'i:mirin', qty: 200 }, { ref: 'i:sugar', qty: 60 }, { ref: 'i:ginger', qty: 50 }],
 }
-const gohan: Prep = { id: 'gohan', name: 'ご飯', yieldAmount: 2300, yieldUnit: 'g', items: [{ ref: 'i:rice', qty: 1000 }] }
+const gohan: Prep = { id: 'gohan', name: 'ご飯', yieldAmount: 2300, yieldUnit: 'g', steps: [], items: [{ ref: 'i:rice', qty: 1000 }] }
 const butadonTare: Prep = {
-  id: 'dtare', name: '豚丼のタレ', yieldAmount: 320, yieldUnit: 'ml',
+  id: 'dtare', name: '豚丼のタレ', yieldAmount: 320, yieldUnit: 'ml', steps: [],
   items: [{ ref: 'p:tare', qty: 300 }, { ref: 'i:sugar', qty: 30 }],
 }
 const teishoku: Menu = {
-  id: 'm1', name: '豚の生姜焼き定食', servings: 1, price: 1280, history: [],
+  id: 'm1', name: '豚の生姜焼き定食', servings: 1, price: 1280, steps: [], history: [],
   items: [{ ref: 'i:pork', qty: 150 }, { ref: 'i:onion', qty: 50 }, { ref: 'p:tare', qty: 40 }, { ref: 'i:cabbage', qty: 60 }, { ref: 'p:gohan', qty: 230 }],
 }
 const cat = makeCatalog(ings, [tare, gohan, butadonTare])
@@ -62,8 +62,8 @@ describe('仕込み品', () => {
     expect(prepUnitCost(butadonTare, cat)).toBeCloseTo(expected)
   })
   it('循環していても止まる', () => {
-    const a: Prep = { id: 'a', name: 'a', yieldAmount: 100, yieldUnit: 'g', items: [{ ref: 'p:b', qty: 10 }, { ref: 'i:sugar', qty: 100 }] }
-    const b: Prep = { id: 'b', name: 'b', yieldAmount: 100, yieldUnit: 'g', items: [{ ref: 'p:a', qty: 10 }] }
+    const a: Prep = { id: 'a', name: 'a', yieldAmount: 100, yieldUnit: 'g', steps: [], items: [{ ref: 'p:b', qty: 10 }, { ref: 'i:sugar', qty: 100 }] }
+    const b: Prep = { id: 'b', name: 'b', yieldAmount: 100, yieldUnit: 'g', steps: [], items: [{ ref: 'p:a', qty: 10 }] }
     const c = makeCatalog(ings, [a, b])
     expect(Number.isFinite(prepUnitCost(a, c))).toBe(true)
   })

@@ -44,6 +44,8 @@ export interface Prep {
   yieldAmount: number
   yieldUnit: BaseUnit
   items: Item[]
+  /** 作り方の手順（1行目から順に） */
+  steps: string[]
 }
 
 export interface Menu {
@@ -53,6 +55,8 @@ export interface Menu {
   /** 税別の売価 */
   price: number
   items: Item[]
+  /** 作り方の手順（1行目から順に） */
+  steps: string[]
   history: CostPoint[]
 }
 

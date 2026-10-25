@@ -1,8 +1,9 @@
 # 原価計算帳
 
-料理人がiPhoneで使う原価計算アプリ（PWA）です。食材の仕入れ値、仕込み品、メニューのレシピを登録すると、1皿の原価と原価率を計算します。データはiPhoneの中（IndexedDB）にだけ保存します。
+料理人がiPhoneで使う原価計算アプリ（PWA）です。食材の仕入れ値、仕込み品、メニューのレシピを登録すると、1皿の原価と原価率を計算します。仕込み品とメニューには作り方（番号付きの手順）もメモできます。データはiPhoneの中（IndexedDB）にだけ保存します。
 
 - 要件定義書：https://claude.ai/code/artifact/000f75c3-68ba-45bb-9da0-610b73300642
+- 公開URL：https://bobmoe54145-lab.github.io/genka-chou/
 - 金額はすべて税別です
 
 ## 開発
@@ -12,6 +13,7 @@ npm install
 npm run dev      # 開発サーバー（同じWi‑FiのiPhoneから見るときは -- --host を付ける）
 npm test         # 原価計算・履歴・バックアップのテスト
 npm run build    # dist/ に本番用ファイルを作る
+npm run icons    # assets/icon-original.png からアイコン一式を作り直す
 ```
 
 ## 構成
@@ -21,11 +23,12 @@ npm run build    # dist/ に本番用ファイルを作る
 | `src/domain/` | 単位換算、原価計算、履歴の記録（画面に依存しない） |
 | `src/db/` | IndexedDB（Dexie）への保存、バックアップの書き出しと読み込み |
 | `src/ui/` | 画面、シート、共通部品、スタイル |
-| `public/` | アプリのアイコン（`logo.svg` から `npx pwa-assets-generator --preset minimal-2023 public/logo.svg` で生成） |
+| `assets/` | アイコンの元画像と、それを加工するスクリプト（`make-icon.mjs`） |
+| `public/` | アプリのアイコン（`npm run icons` で生成。直接編集しない） |
 
 ## 公開
 
-`main` ブランチに push すると、`.github/workflows/deploy.yml` がテストとビルドをしてGitHub Pagesに公開します。初回だけ、GitHubのリポジトリ設定の「Pages」で Source を「GitHub Actions」にしてください。
+`main` ブランチに push すると、`.github/workflows/deploy.yml` がテストとビルドをしてGitHub Pagesに公開します。
 
 ## iPhoneでの使い方
 
@@ -33,3 +36,7 @@ npm run build    # dist/ に本番用ファイルを作る
 2. 共有ボタンから「ホーム画面に追加」を選ぶ
 3. 以後はホーム画面のアイコンから開く（Safariで開いたままだと、しばらく使わないうちにデータが消えることがあります）
 4. 設定の「ファイルに書き出す」で、定期的にiCloud Driveなどへバックアップする
+
+### アイコンを変えたとき
+
+ホーム画面に追加済みのアイコンは自動では変わりません。変えるには、アプリを削除して追加し直します。**削除するとアプリの中のデータも消える**ので、先に設定の「ファイルに書き出す」でバックアップし、追加し直してから「ファイルから読み込む」で戻します。

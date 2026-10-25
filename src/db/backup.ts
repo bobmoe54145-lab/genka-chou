@@ -5,7 +5,8 @@ import { db } from './db'
 
 export interface BackupFile {
   app: 'genka-chou'
-  version: 1
+  /** 1：最初の版、2：仕込み品とメニューに作り方（steps）を追加 */
+  version: 2
   exportedAt: string
   settings: Settings
   ingredients: Ingredient[]
@@ -21,7 +22,7 @@ export interface BackupData {
 }
 
 export function buildBackup(data: BackupData, now = new Date()): BackupFile {
-  return { app: 'genka-chou', version: 1, exportedAt: now.toISOString(), ...data }
+  return { app: 'genka-chou', version: 2, exportedAt: now.toISOString(), ...data }
 }
 
 export const backupFileName = (now = new Date()) => `原価計算帳_バックアップ_${today(now)}.json`
@@ -31,6 +32,7 @@ export const backupFileName = (now = new Date()) => `原価計算帳_バック�
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 const isStr = (v: unknown): v is string => typeof v === 'string'
+const isStrList = (v: unknown): v is string[] => Array.isArray(v) && v.every(isStr)
 
 function checkItems(v: unknown): v is Item[] {
   return Array.isArray(v) && v.every((it) =>
@@ -45,12 +47,12 @@ function checkIngredient(v: unknown): v is Ingredient {
 
 function checkPrep(v: unknown): v is Prep {
   return isObj(v) && isStr(v.id) && isStr(v.name) && isNum(v.yieldAmount) &&
-    BASE_UNITS.includes(v.yieldUnit as never) && checkItems(v.items)
+    BASE_UNITS.includes(v.yieldUnit as never) && checkItems(v.items) && isStrList(v.steps)
 }
 
 function checkMenu(v: unknown): v is Menu {
   return isObj(v) && isStr(v.id) && isStr(v.name) && isNum(v.servings) && isNum(v.price) && checkItems(v.items) &&
-    Array.isArray(v.history) && v.history.every((h) => isObj(h) && isStr(h.date) && isNum(h.cost) && isNum(h.rate))
+    isStrList(v.steps) && Array.isArray(v.history) && v.history.every((h) => isObj(h) && isStr(h.date) && isNum(h.cost) && isNum(h.rate))
 }
 
 /** バックアップファイルの中身を検証する。問題があれば理由つきで例外を投げる */
@@ -62,7 +64,14 @@ export function parseBackup(text: string): BackupFile {
     throw new Error('ファイルを読み取れませんでした。原価計算帳で書き出したファイルを選んでください')
   }
   if (!isObj(v) || v.app !== 'genka-chou') throw new Error('原価計算帳のバックアップファイルではありません')
-  if (v.version !== 1) throw new Error('このバージョンのバックアップには対応していません')
+  if (v.version !== 1 && v.version !== 2) throw new Error('このバージョンのバックアップには対応していません')
+  if (v.version === 1) {
+    // 版1には作り方がないので、空の手順を足してから確かめる
+    for (const key of ['preps', 'menus'] as const) {
+      const list = v[key]
+      if (Array.isArray(list)) v[key] = list.map((x) => (isObj(x) ? { ...x, steps: [] } : x))
+    }
+  }
   const bad = (what: string) => new Error(`バックアップの${what}が壊れているため読み込めません`)
   if (!Array.isArray(v.ingredients) || !v.ingredients.every(checkIngredient)) throw bad('食材データ')
   if (!Array.isArray(v.preps) || !v.preps.every(checkPrep)) throw bad('仕込み品データ')
@@ -73,7 +82,7 @@ export function parseBackup(text: string): BackupFile {
     lastBackupAt: isStr(s.lastBackupAt) ? s.lastBackupAt : null,
   }
   return {
-    app: 'genka-chou', version: 1, exportedAt: isStr(v.exportedAt) ? v.exportedAt : '', settings,
+    app: 'genka-chou', version: 2, exportedAt: isStr(v.exportedAt) ? v.exportedAt : '', settings,
     ingredients: v.ingredients, preps: v.preps, menus: v.menus,
   }
 }

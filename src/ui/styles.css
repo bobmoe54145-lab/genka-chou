@@ -138,6 +138,16 @@ p.empty { display: block }
 .add-row { width: 100%; border: 0; background: none; color: var(--ai); font-weight: 500; padding: 12px 14px; text-align: left }
 .confirm-msg { margin: 0; font-size: 14px }
 
+/* 作り方 */
+.steps li:not(:last-child) { display: flex; gap: 10px; padding: 10px 12px 8px 12px }
+.step-no { flex: none; width: 24px; height: 24px; margin-top: 7px; border-radius: 50%; background: var(--ai-soft); color: var(--ai); font-size: 13px; font-weight: 500; display: grid; place-items: center }
+.step-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px }
+.step-body textarea { width: 100%; resize: none; overflow: hidden; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 16px; line-height: 1.5; color: inherit }
+.step-tools { display: flex; gap: 4px; justify-content: flex-end }
+.step-tools button { border: 0; background: none; color: var(--ai); font-size: 13px; padding: 4px 10px; border-radius: 6px }
+.step-tools button.del { color: var(--muted) }
+.step-tools button.del.armed { background: var(--bad-soft); color: var(--bad); font-weight: 700 }
+
 /* 履歴 */
 .hist { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px }
 .hist li { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 9px 14px; font-size: 13px }

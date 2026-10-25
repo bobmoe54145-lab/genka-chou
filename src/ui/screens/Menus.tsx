@@ -7,6 +7,7 @@ import { useData } from '../data'
 import { yen } from '../format'
 import { useNav } from '../nav'
 import { ItemRows } from './ItemRows'
+import { StepsEditor } from './Steps'
 import { Banners } from './Settings'
 
 export function MenuList() {
@@ -127,6 +128,10 @@ export function MenuDetail({ id }: { id: string }) {
       <section className="sec">
         <h2>材料<small>{m.servings > 1 ? `${m.servings}人前の分量 → 1皿に換算` : '1皿分の分量'}</small></h2>
         <ItemRows items={m.items} holder={{ kind: 'menu', id: m.id }} />
+      </section>
+      <section className="sec">
+        <h2>作り方<small>入力欄から離れると保存</small></h2>
+        <StepsEditor steps={m.steps} onSave={(steps) => update({ steps })} />
       </section>
       <section className="sec">
         <h2>原価の推移<small>食材の値段や売価が変わると記録</small></h2>

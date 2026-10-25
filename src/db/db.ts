@@ -20,6 +20,11 @@ export class GenkaDB extends Dexie {
       menus: 'id, name',
       kv: 'key',
     })
+    // 版2：仕込み品とメニューに作り方（steps）を追加。既存のデータには空の手順を入れる
+    this.version(2).stores({}).upgrade(async (tx) => {
+      await tx.table('preps').toCollection().modify((p) => { p.steps ??= [] })
+      await tx.table('menus').toCollection().modify((m) => { m.steps ??= [] })
+    })
   }
 }
 

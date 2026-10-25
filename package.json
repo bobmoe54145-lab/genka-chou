@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "icons": "node assets/make-icon.mjs && pwa-assets-generator && mv assets/favicon.ico assets/pwa-*.png assets/apple-touch-icon-*.png assets/maskable-icon-*.png public/"
   },
   "dependencies": {
     "dexie": "^4.4.6",

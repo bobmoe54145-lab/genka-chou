@@ -7,6 +7,7 @@ import { useData } from '../data'
 import { qtyFmt, unitYen, yen } from '../format'
 import { useNav } from '../nav'
 import { ItemRows } from './ItemRows'
+import { StepsEditor } from './Steps'
 
 export function PrepList() {
   const { preps, menus, cat } = useData()
@@ -89,6 +90,10 @@ export function PrepDetail({ id }: { id: string }) {
       <section className="sec">
         <h2>材料<small>行をタップして分量を変更</small></h2>
         <ItemRows items={p.items} holder={{ kind: 'prep', id: p.id }} />
+      </section>
+      <section className="sec">
+        <h2>作り方<small>入力欄から離れると保存</small></h2>
+        <StepsEditor steps={p.steps} onSave={(steps) => update({ steps })} />
       </section>
       <button className="btn danger" onClick={remove}>この仕込み品を削除</button>
     </>
