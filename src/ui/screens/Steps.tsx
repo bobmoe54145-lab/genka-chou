@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { moveIndex, useDragSort } from '../sort'
 
 /** 中身に合わせて高さが伸びる入力欄 */
 function GrowText({ value, onChange, onBlur, autoFocus, label }: {
@@ -45,12 +46,10 @@ export function StepsEditor({ steps, onSave }: { steps: string[]; onSave: (steps
     setDraft(keepEmpty ? next : cleaned)
     if (!same(cleaned, steps)) onSave(cleaned)
   }
-  const move = (k: number, d: -1 | 1) => {
-    const next = [...draft]
-    ;[next[k], next[k + d]] = [next[k + d], next[k]]
+  const sort = useDragSort((from, to) => {
     setArmedDelete(null)
-    save(next)
-  }
+    save(moveIndex(draft, from, to))
+  })
   const remove = (k: number) => {
     if (armedDelete !== k) return setArmedDelete(k)
     setArmedDelete(null)
@@ -58,22 +57,21 @@ export function StepsEditor({ steps, onSave }: { steps: string[]; onSave: (steps
   }
 
   return (
-    <ol className="list steps">
+    <ol className="list steps" {...sort.listProps}>
       {draft.map((s, k) => (
-        <li key={k}>
+        <li key={k} {...sort.rowProps(k)}>
           <span className="step-no num" aria-hidden="true">{k + 1}</span>
           <div className="step-body">
             <GrowText value={s} label={`手順${k + 1}`} autoFocus={focusIndex === k}
               onChange={(v) => setDraft(draft.map((x, i) => (i === k ? v : x)))}
               onBlur={(movedInside) => { setFocusIndex(null); save(draft, movedInside) }} />
             <div className="step-tools">
-              <button type="button" disabled={k === 0} onClick={() => move(k, -1)} aria-label={`手順${k + 1}を上へ`}>↑</button>
-              <button type="button" disabled={k === draft.length - 1} onClick={() => move(k, 1)} aria-label={`手順${k + 1}を下へ`}>↓</button>
               <button type="button" className={`del ${armedDelete === k ? 'armed' : ''}`} onClick={() => remove(k)}>
                 {armedDelete === k ? 'もう一度押すと削除' : '削除'}
               </button>
             </div>
           </div>
+          {draft.length > 1 && <button type="button" className="grip" aria-label={`手順${k + 1}を並べ替え`} {...sort.handle(k)}>≡</button>}
         </li>
       ))}
       <li>

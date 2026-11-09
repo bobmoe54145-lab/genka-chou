@@ -77,4 +77,4 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = { targetRate: 30, lastBackupAt: null }
 
-export const CATEGORIES = ['肉', '魚', '野菜', '調味料', '加工品', '米・乾物', 'その他'] as const
+export const CATEGORIES = ['肉', '魚', '野菜', '乳製品', '調味料', '加工品', '米・乾物', 'その他'] as const

@@ -90,7 +90,7 @@ export function PrepDetail({ id }: { id: string }) {
       </section>
       <PhotoBlock owner={`prep:${p.id}`} name={p.name} />
       <section className="sec">
-        <h2>材料<small>行をタップして分量を変更</small></h2>
+        <h2>材料<small>タップで分量・≡で並べ替え</small></h2>
         <ItemRows items={p.items} holder={{ kind: 'prep', id: p.id }} />
       </section>
       <section className="sec">

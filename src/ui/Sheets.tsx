@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { ingUnitCost, itemCost, prepUnitCost, refInfo, uses } from '../domain/cost'
-import type { Item, Ref } from '../domain/types'
+import { CATEGORIES, type Item, type Ref } from '../domain/types'
 import { baseUnitOf } from '../domain/units'
 import { newId, saveIngredient, saveMenu, savePrep } from '../db/repo'
 import { useData, type AppData } from './data'
@@ -43,7 +43,7 @@ function itemsOf(holder: Holder, d: AppData): Item[] {
 }
 
 /** メニューか仕込み品の材料を保存する。仕込み品なら影響したメニューの数を返す */
-async function saveItems(holder: Holder, items: Item[], d: AppData): Promise<number> {
+export async function saveItems(holder: Holder, items: Item[], d: AppData): Promise<number> {
   if (holder.kind === 'menu') {
     const m = d.menus.find((x) => x.id === holder.id)
     if (m) await saveMenu({ ...m, items })
@@ -58,10 +58,11 @@ function PickItem({ holder }: { holder: Holder }) {
   const nav = useNav()
   const [tab, setTab] = useState<'i' | 'p'>('i')
   const [q, setQ] = useState('')
+  const [category, setCategory] = useState('全て')
   const query = q.trim()
   const self: Ref = `p:${holder.id}`
   const rows = tab === 'i'
-    ? data.ings.map((i) => ({ ref: `i:${i.id}` as Ref, name: i.name, sub: `${i.supplier ? i.supplier + ' · ' : ''}${unitYen(ingUnitCost(i))}円/${baseUnitOf(i.packUnit)}` }))
+    ? data.ings.filter((i) => category === '全て' || i.category === category).map((i) => ({ ref: `i:${i.id}` as Ref, name: i.name, sub: `${i.supplier ? i.supplier + ' · ' : ''}${unitYen(ingUnitCost(i))}円/${baseUnitOf(i.packUnit)}` }))
     : data.preps
       // 仕込み品に入れるときは、自分自身と自分を使っている仕込み品を除く（循環を防ぐ）
       .filter((p) => !(holder.kind === 'prep' && (p.id === holder.id || uses(p.items, self, data.cat))))
@@ -75,6 +76,11 @@ function PickItem({ holder }: { holder: Holder }) {
         <button className={tab === 'p' ? 'on' : ''} onClick={() => setTab('p')}>仕込み品</button>
       </div>
       <div className="search"><input id="pick-q" type="search" placeholder="名前で検索" value={q} aria-label="材料を検索" onChange={(e) => setQ(e.target.value)} /></div>
+      {tab === 'i' && (
+        <div className="chips">
+          {['全て', ...CATEGORIES].map((c) => <button key={c} className={`chip ${c === category ? 'on' : ''}`} onClick={() => setCategory(c)}>{c}</button>)}
+        </div>
+      )}
       <ul className="list">
         {tab === 'i' && (
           <li><button className="add-row" onClick={() => nav.openSheet({ type: 'newIng', holder, draft: { name: query } })}>＋ 新しい食材を登録する</button></li>

@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. 食材・仕込み品・メニュー、原価・原価率、価格履歴と原価推移、バックアップ（完了、2026-10-04 公開）
 2. 新しいアイコン、仕込み品とメニューの作り方（番号付きの手順）（2026-10-25 公開）
 3. 仕込み品とメニューの写真（1枚、材料の上、高さ220pxで切り取り表示、押すと全体を拡大）（2026-10-25）
+4. 材料と作り方の並べ替え（右端の「≡」をドラッグ）、材料を追加する画面のカテゴリー絞り込み、カテゴリー「乳製品」（2026-11-09）
 
 公開先：https://bobmoe54145-lab.github.io/genka-chou/
 GitHub：https://github.com/bobmoe54145-lab/genka-chou（公開。GitHub Pages の無料プランのため）
@@ -50,4 +51,5 @@ GitHub：https://github.com/bobmoe54145-lab/genka-chou（公開。GitHub Pages �
 - 写真は保存前に長い辺1200px・JPEG品質0.8に縮めて data URL で持つ（`src/ui/photo.ts`）。メニューの中に入れると、一覧を読むたびに全写真を読むので別テーブルにした。
 - バックアップは写真を読むので時間がかかり、iPhone の共有シートが「押した直後」でないと開けない（`NotAllowedError`）。そのときはボタンを「押して保存する」に変えて2回目の操作で共有する（`ExportButton`）。
 - ブラウザ確認でファイル選択は、canvas で作った画像を `DataTransfer` で `input.files` に入れ `change` を送ると試せる（ボタンを押すとファイル選択の窓が開いて操作できなくなる）。
+- 並べ替え（`src/ui/sort.ts`）は、動かしている間は DOM の順番を変えず transform で見た目だけずらし、指を離したときに保存する。DOM を並べ替えると、つかんでいる要素が付け直されて pointer capture が切れる。つまみには `touch-action: none` を付けてスクロールと区別する。
 - ホーム画面に追加済みのアイコンは自動では変わらず、削除して追加し直すとデータも消える（README 参照）。
